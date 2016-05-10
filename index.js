@@ -51,7 +51,7 @@ app.get('/play/:url', function(req, res) {
 
 	console.log('play', wavURL);
 
-	// var term = require('child_process').spawn('mpg123', ['-']);
+	var term = require('child_process').spawn('mpg123', ['-']);
 
 	// var termout = '';
 
@@ -68,17 +68,16 @@ parser.on('header', function (header) {
 //process.stdin.pipe(parser).pipe(process.stdout);
 
 
-	request.get(wavURL).pipe(parser).pipe(base64.decode()).pipe(process.stderr);
+	request.get(wavURL).pipe(parser).pipe(base64.decode()).pipe(term.stdin);
 
-	// term.on('close', (code) => {
-	// 	return res.status(200).json({
-	// 		msg: 'playing',
-	// 		url: wavURL,
-	// 		termout: termout
-	// 	});
+	 term.on('close', (code) => {
+	 	return res.status(200).json({
+	 		msg: 'playing',
+	 		url: wavURL,
+	 	});
 
 
-//	});
+	});
 
 	// with ability to pause/resume: 
 	//	music = new Sound(wavURL);
