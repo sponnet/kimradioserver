@@ -1,10 +1,14 @@
 var express = require('express');
 var Sound = require('node-aplay');
+var favicon = require('serve-favicon');
 
 var app = express();
+app.use(favicon(__dirname + '/favicon.ico'));
 var music;
 var config = require('./config.json');
 //var Firebase = require('firebase');
+var stream = require('stream');
+var request = require('request');
 
 // add our address to the donation queue
 app.get('/play/:url', function(req, res) {
@@ -13,15 +17,31 @@ app.get('/play/:url', function(req, res) {
 
 	console.log('play', wavURL);
 
+	var term = require('child_process').spawn('head',['-1']);
+
+	var termout = '';
+
+	term.stdout.on('data', function(data) {
+		console.log('TERM:', data.toString());
+		termout += data.toString();
+	});
+
+	request.get(wavURL).pipe(
+		term.stdin);
+
+ term.on('close', (code) => {
+ 		return res.status(200).json({
+		msg: 'playing',
+		url: wavURL,
+		termout: termout
+	});
+
+
+});
 
 	// with ability to pause/resume: 
 	//	music = new Sound(wavURL);
 	//	music.play();
-
-	return res.status(200).json({
-		msg: 'playing',
-		url: wavURL
-	});
 
 	/*setTimeout(function () {
 		music.pause(); // pause the music after five seconds 
@@ -42,3 +62,23 @@ app.get('/play/:url', function(req, res) {
 app.listen(config.httpport, function() {
 	console.log('OK - listening on port ', config.httpport);
 });
+
+// var term = require('child_process').spawn('grep', ['5']);
+
+// term.stdout.on('data', function(data) {
+// 	console.log('TERM:', data.toString());
+// });
+
+
+
+// var stream = require('stream');
+// var bufferStream = new stream.PassThrough;
+// var buffer = new Buffer("1234");
+// bufferStream.end(buffer);
+// //console.log(bufferStream);
+// bufferStream.pipe(term.stdin);
+// //term.stdin.end();
+
+// term.on('close', (code) => {
+// 	console.log(`child process exited with code ${code}`);
+// });

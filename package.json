@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.13.4",
-    "node-aplay": "^1.0.3"
+    "node-aplay": "^1.0.3",
+    "request": "^2.72.0"
   }
 }
