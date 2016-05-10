@@ -9,6 +9,7 @@ var config = require('./config.json');
 //var Firebase = require('firebase');
 var stream = require('stream');
 var request = require('request');
+var base64 = require('base64-stream');
 
 // add our address to the donation queue
 app.get('/play/:url', function(req, res) {
@@ -17,7 +18,7 @@ app.get('/play/:url', function(req, res) {
 
 	console.log('play', wavURL);
 
-	var term = require('child_process').spawn('head',['-1']);
+	var term = require('child_process').spawn('mpg123',['-']);
 
 	var termout = '';
 
@@ -27,7 +28,7 @@ app.get('/play/:url', function(req, res) {
 	});
 
 	request.get(wavURL).pipe(
-		term.stdin);
+		base64.decode()).pipe(process.stderr);
 
  term.on('close', (code) => {
  		return res.status(200).json({
