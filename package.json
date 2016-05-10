@@ -13,6 +13,8 @@
     "express": "^4.13.4",
     "node-aplay": "^1.0.3",
     "request": "^2.72.0",
-    "serve-favicon": "^2.3.0"
+    "serve-favicon": "^2.3.0",
+    "stream-parser": "^0.3.1",
+    "util": "^0.10.3"
   }
 }
