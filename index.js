@@ -15,12 +15,16 @@ var Parser = require('stream-parser');
 var inherits = require('util').inherits;
 var Transform = require('stream').Transform;
 
-// create a Transform stream subclass
-function MyParser () {
-  Transform.call(this);
+var Firebase = require('firebase');
+var Queue = require('firebase-queue');
 
-  // buffer the first 8 bytes written
-  this._bytes(8+15, this.onheader);
+
+// create a Transform stream subclass
+function MyParser() {
+	Transform.call(this);
+
+	// buffer the first 8 bytes written
+	this._bytes(8 + 15, this.onheader);
 }
 inherits(MyParser, Transform);
 
@@ -28,97 +32,121 @@ inherits(MyParser, Transform);
 Parser(MyParser.prototype);
 
 // invoked when the first 8 bytes have been received
-MyParser.prototype.onheader = function (buffer, output) {
-  // parse the "buffer" into a useful "header" object
-  var header = {};
-  header.type = buffer.readUInt32LE(0);
-  header.name = buffer.toString('utf8', 4+15);
-  this.emit('header', header);
+MyParser.prototype.onheader = function(buffer, output) {
+	// parse the "buffer" into a useful "header" object
+	var header = {};
+	header.type = buffer.readUInt32LE(0);
+	header.name = buffer.toString('utf8', 4 + 15);
+	this.emit('header', header);
 
-  // it's usually a good idea to queue the next "piece" within the callback
-  this._passthrough(Infinity);
+	// it's usually a good idea to queue the next "piece" within the callback
+	this._passthrough(Infinity);
 };
 
 
+var myRootRef = new Firebase("https://dagboeka.firebaseio.com/remote/" + config.serial);
+var queueRef = myRootRef.child("queue");
+
+// Creates the Queue
+var options = {
+	//specId: 'faucet',
+	numWorkers: 1
+};
+
+var queue = new Queue(queueRef, options, function(data, progress, resolve, reject) {
+
+	//console.log('received radio command:', data);
+	switch(data.command){
+		case "play":
+			console.log('start playing clip ' + getclip(0));
+			playClip(getclip(0));
+			break;
+		case "fwd":
+			console.log('start playing clip ' + getclip(1));
+			playClip(getclip(0));
+			break;
+		case "back":
+			console.log('start playing clip ' + getclip(-1));
+			playClip(getclip(0));
+			break;
+		case "pause":
+			console.log('pause playback');
+			break;
+
+	}
+	//	setTimeout(function() {
+	resolve();
+	//	}, 1000);
+
+});
+
+
+var clips = [];
+var needle = 0;
+
+function getclip(delta){
+	needle += delta;
+	if (needle >= clips.length){
+		console.log('end of clip list reached.. start from beginning');
+		needle = 0;
+	}
+	console.log('index=',needle,'length of clips array=',clips.length);
+	return clips[needle];
+}
+
+
+var clipref = new Firebase("https://dagboeka.firebaseio.com/clips/" + config.serial);
+clipref.on('child_added', function(childSnapshot, prevChildKey) {
+  // code to handle new child.
+  console.log('found clip',childSnapshot.key());
+	clips.push(childSnapshot.key());
+  console.log('number of clips in this playlist:',clips.length);
+
+});
 
 
 
+
+app.get('/', function(req, res) {
+	var url = 'http://localhost:5000/#!/settings/' + config.serial;
+
+	console.log('my serial is ' + config.serial);
+	console.log('redirect to ' + url);
+	return res.redirect(url);
+
+});
 
 // add our address to the donation queue
-app.get('/play/:url', function(req, res) {
+//app.get('/play/:url', function(req, res) {
 
-	var wavURL = req.params.url;
+
+function playClip(clipID){
+
+	var wavURL = "https://dagboeka.firebaseio.com/clips/" + config.serial + "/" + clipID + "/data.json";
 
 	console.log('play', wavURL);
 
 	var term = require('child_process').spawn('mpg123', ['-']);
 
-	// var termout = '';
-
-	// term.stdout.on('data', function(data) {
-	// 	console.log('TERM:', data.toString());
-	// 	termout += data.toString();
-	// });
-
-var parser = new MyParser();
-parser.on('header', function (header) {
-  console.error('got "header"', header);
-});
-
-//process.stdin.pipe(parser).pipe(process.stdout);
+	var parser = new MyParser();
+	parser.on('header', function(header) {
+		console.error('got "header"', header);
+	});
 
 
 	request.get(wavURL).pipe(parser).pipe(base64.decode()).pipe(term.stdin);
 
-	 term.on('close', (code) => {
-	 	return res.status(200).json({
-	 		msg: 'playing',
-	 		url: wavURL,
-	 	});
+	term.on('close', (code) => {
+		return res.status(200).json({
+			msg: 'playing',
+			url: wavURL,
+		});
 
 
-	});
+	// });
 
-	// with ability to pause/resume: 
-	//	music = new Sound(wavURL);
-	//	music.play();
-
-	/*setTimeout(function () {
-		music.pause(); // pause the music after five seconds 
-	}, 5000);
-	 
-	setTimeout(function () {
-		music.resume(); // and resume it two seconds after pausing 
-	}, 7000);
-	 
-	// you can also listen for various callbacks: 
-	music.on('complete', function () {
-		console.log('Done with playback!');
-	});
-	*/
-
-});
+}
 
 app.listen(config.httpport, function() {
 	console.log('OK - listening on port ', config.httpport);
 });
-
-// var term = require('child_process').spawn('grep', ['5']);
-
-// term.stdout.on('data', function(data) {
-// 	console.log('TERM:', data.toString());
-// });
-
-
-
-// var stream = require('stream');
-// var bufferStream = new stream.PassThrough;
-// var buffer = new Buffer("1234");
-// bufferStream.end(buffer);
-// //console.log(bufferStream);
-// bufferStream.pipe(term.stdin);
-// //term.stdin.end();
-
-// term.on('close', (code) => {
-// 	console.log(`child process exited with code ${code}`);
-// });

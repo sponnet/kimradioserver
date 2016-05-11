@@ -1,3 +1,5 @@
 {
-	"httpport": 3000
+	"httpport": 3000,
+	"emulateplay": true,
+	"serial": "sponnet"
 }
