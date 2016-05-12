@@ -1,7 +1,7 @@
 {
 	"httpport": 3000,
 	"emulateplay": false,
-	"firebaseroot": "https://dagboeka.firebaseio.com",
+	"firebaseroot": "https://activiteiten.firebaseio.com",
 	"serial": "sponnet",
 	"hashtag": "intro"
 }

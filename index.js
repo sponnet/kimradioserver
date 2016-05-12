@@ -139,7 +139,7 @@ function playClip(clipID){
 		console.log('no clipID given... abort');
 	}
 
-	var wavURL = config.firebaseroot + "/clips/" + hashtag + "/" + clipID + "/data.json";
+	var wavURL = config.firebaseroot + "/rawclips/" + clipID + "/data.json";
 
 	console.log('play', wavURL);
 
