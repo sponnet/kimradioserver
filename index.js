@@ -75,6 +75,7 @@ var queue = new Queue(queueRef, options, function(data, progress, resolve, rejec
 		case "hashtag":
 			console.log('set hashtag to',data.value);
 			sethashtag(data.value);
+			break;
 		default:
 			console.log('unknown command',data.command);
 			break;
@@ -107,7 +108,7 @@ function sethashtag(newHashtag){
 	hashtag = newHashtag;
 	console.log('switching to hashtag',hashtag);
 	clips= [];
-	var clipref = new Firebase(config.firebaseroot + "/clips/" + hashtag);
+	var clipref = new Firebase(config.firebaseroot + "/" + hashtag);
 	clipref.on('child_added', function(childSnapshot, prevChildKey) {
 	  // code to handle new child.
 	  console.log('found clip',childSnapshot.key());
