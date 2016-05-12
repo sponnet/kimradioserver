@@ -86,6 +86,7 @@ var queue = new Queue(queueRef, options, function(data, progress, resolve, rejec
 
 });
 
+var hashtag = config.hashtag;
 var clips = [];
 var needle = 0;
 
@@ -102,7 +103,8 @@ function getclip(delta){
 	return clips[needle];
 }
 
-function sethashtag(hashtag){
+function sethashtag(newHashtag){
+	hashtag = newHashtag;
 	console.log('switching to hashtag',hashtag);
 	var clipref = new Firebase(config.firebaseroot + "/clips/" + hashtag);
 	clipref.on('child_added', function(childSnapshot, prevChildKey) {
@@ -114,7 +116,7 @@ function sethashtag(hashtag){
 	});
 
 }
-
+	
 sethashtag(config.hashtag);
 
 app.get('/', function(req, res) {
@@ -132,7 +134,11 @@ app.get('/', function(req, res) {
 
 function playClip(clipID){
 
-	var wavURL = config.firebaseroot + "/clips/" + config.serial + "/" + clipID + "/data.json";
+	if (!clipID){
+		console.log('no clipID given... abort');
+	}
+
+	var wavURL = config.firebaseroot + "/clips/" + hashtag + "/" + clipID + "/data.json";
 
 	console.log('play', wavURL);
 
