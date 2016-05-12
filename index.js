@@ -138,11 +138,11 @@ function playClip(clipID){
 		console.error('got "header"', header);
 	});
 
-
+	console.log('start playback');
 	request.get(wavURL).pipe(parser).pipe(base64.decode()).pipe(term.stdin);
 
 	term.on('close', (code) => {
-	
+		console.log('finished!');
 	});
 
 }
