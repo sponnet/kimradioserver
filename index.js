@@ -106,6 +106,7 @@ function getclip(delta){
 function sethashtag(newHashtag){
 	hashtag = newHashtag;
 	console.log('switching to hashtag',hashtag);
+	clips= [];
 	var clipref = new Firebase(config.firebaseroot + "/clips/" + hashtag);
 	clipref.on('child_added', function(childSnapshot, prevChildKey) {
 	  // code to handle new child.
