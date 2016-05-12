@@ -72,6 +72,9 @@ var queue = new Queue(queueRef, options, function(data, progress, resolve, rejec
 		case "pause":
 			console.log('pause playback');
 			break;
+		default:
+			console.log('unknown command',data.command);
+			break;
 
 	}
 	//	setTimeout(function() {
