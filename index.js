@@ -44,7 +44,7 @@ MyParser.prototype.onheader = function(buffer, output) {
 };
 
 
-var myRootRef = new Firebase("https://dagboeka.firebaseio.com/remote/" + config.serial);
+var myRootRef = new Firebase(config.firebaseroot + "/remote/" + config.serial);
 var queueRef = myRootRef.child("queue");
 
 // Creates the Queue
@@ -95,7 +95,7 @@ function getclip(delta){
 }
 
 
-var clipref = new Firebase("https://dagboeka.firebaseio.com/clips/" + config.serial);
+var clipref = new Firebase(config.firebaseroot + "/clips/" + config.serial);
 clipref.on('child_added', function(childSnapshot, prevChildKey) {
   // code to handle new child.
   console.log('found clip',childSnapshot.key());
@@ -122,9 +122,14 @@ app.get('/', function(req, res) {
 
 function playClip(clipID){
 
-	var wavURL = "https://dagboeka.firebaseio.com/clips/" + config.serial + "/" + clipID + "/data.json";
+	var wavURL = config.firebaseroot + "/clips/" + config.serial + "/" + clipID + "/data.json";
 
 	console.log('play', wavURL);
+
+	if (config.emulateplay){
+		console.log('emulate');
+		return;
+	}
 
 	var term = require('child_process').spawn('mpg123', ['-']);
 
@@ -137,13 +142,8 @@ function playClip(clipID){
 	request.get(wavURL).pipe(parser).pipe(base64.decode()).pipe(term.stdin);
 
 	term.on('close', (code) => {
-		return res.status(200).json({
-			msg: 'playing',
-			url: wavURL,
-		});
-
-
-	 });
+	
+	});
 
 }
 
