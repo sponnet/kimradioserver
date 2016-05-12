@@ -95,6 +95,9 @@ function getclip(delta){
 		console.log('end of clip list reached.. start from beginning');
 		needle = 0;
 	}
+	if (needle < 0){
+		needle = clips.length-1;
+	}
 	console.log('index=',needle,'length of clips array=',clips.length);
 	return clips[needle];
 }
