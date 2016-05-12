@@ -111,8 +111,9 @@ function sethashtag(newHashtag){
 	var clipref = new Firebase(config.firebaseroot + "/hashtags/" + hashtag);
 	clipref.on('child_added', function(childSnapshot, prevChildKey) {
 	  // code to handle new child.
-	  console.log('found clip',childSnapshot.key());
-		clips.push(childSnapshot.key());
+	  var clipkey = childSnapshot.val().clipkey;
+	  console.log('found clip',childSnapshot.key(),'clipkey=',clipkey);
+		clips.push(clipkey);
 	  console.log('number of clips in this playlist:',clips.length);
 
 	});
