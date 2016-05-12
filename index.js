@@ -72,6 +72,9 @@ var queue = new Queue(queueRef, options, function(data, progress, resolve, rejec
 		case "pause":
 			console.log('pause playback');
 			break;
+		case "hashtag":
+			console.log('set hashtag to',data.value);
+			sethashtag(data.value);
 		default:
 			console.log('unknown command',data.command);
 			break;
@@ -82,7 +85,6 @@ var queue = new Queue(queueRef, options, function(data, progress, resolve, rejec
 	//	}, 1000);
 
 });
-
 
 var clips = [];
 var needle = 0;
@@ -97,18 +99,20 @@ function getclip(delta){
 	return clips[needle];
 }
 
+function sethashtag(hashtag){
 
-var clipref = new Firebase(config.firebaseroot + "/clips/" + config.serial);
-clipref.on('child_added', function(childSnapshot, prevChildKey) {
-  // code to handle new child.
-  console.log('found clip',childSnapshot.key());
-	clips.push(childSnapshot.key());
-  console.log('number of clips in this playlist:',clips.length);
+	var clipref = new Firebase(config.firebaseroot + "/clips/" + hashtag);
+	clipref.on('child_added', function(childSnapshot, prevChildKey) {
+	  // code to handle new child.
+	  console.log('found clip',childSnapshot.key());
+		clips.push(childSnapshot.key());
+	  console.log('number of clips in this playlist:',clips.length);
 
-});
+	});
 
+}
 
-
+sethashtag(config.hashtag);
 
 app.get('/', function(req, res) {
 	var url = 'http://localhost:5000/#!/settings/' + config.serial;

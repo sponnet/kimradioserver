@@ -2,5 +2,6 @@
 	"httpport": 3000,
 	"emulateplay": true,
 	"firebaseroot": "https://dagboeka.firebaseio.com",
-	"serial": "sponnet"
+	"serial": "sponnet",
+	"hashtag": "intro"
 }
