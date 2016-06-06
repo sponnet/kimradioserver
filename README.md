@@ -13,4 +13,24 @@ Server for the kimradio on the RPI3
 
 ## Config the app
 
-TODO
+### Access point software
+* git clone https://github.com/sabhiram/raspberry-wifi-conf.git
+* cd raspberry-wifi-conf
+* npm install
+* now edit config.json and set SSID and PWD to whatever 8-character string you like.
+* sudo npm run provision
+
+This will install and configure 
+** hostapd ( )
+** isc-dhcp-server ( /etc/default/isc-dhcp-server )
+** dnsmasq
+
+
+
+### Kimradio server
+* git clone https://github.com/sponnet/kimradioserver.git
+* add '/home/eth/kimradioserver/start.sh &' to /etc/rc.local
+
+
+
+

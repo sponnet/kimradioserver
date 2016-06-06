@@ -56,7 +56,7 @@ var options = {
 var queue = new Queue(queueRef, options, function(data, progress, resolve, reject) {
 
 	//console.log('received radio command:', data);
-	switch(data.command){
+	switch (data.command) {
 		case "play":
 			console.log('start playing clip ' + getclip(0));
 			playClip(getclip(0));
@@ -71,13 +71,14 @@ var queue = new Queue(queueRef, options, function(data, progress, resolve, rejec
 			break;
 		case "pause":
 			console.log('pause playback');
+			stopClip();
 			break;
 		case "hashtag":
-			console.log('set hashtag to',data.value);
+			console.log('set hashtag to', data.value);
 			sethashtag(data.value);
 			break;
 		default:
-			console.log('unknown command',data.command);
+			console.log('unknown command', data.command);
 			break;
 
 	}
@@ -91,35 +92,44 @@ var hashtag = config.hashtag;
 var clips = [];
 var needle = 0;
 
-function getclip(delta){
+
+// Set radio online
+var statusRef = myRootRef.child("status");
+statusRef.set({
+	online: true
+});
+
+
+function getclip(delta) {
 	needle += delta;
-	if (needle >= clips.length){
+	if (needle >= clips.length) {
 		console.log('end of clip list reached.. start from beginning');
 		needle = 0;
 	}
-	if (needle < 0){
-		needle = clips.length-1;
+	if (needle < 0) {
+		needle = clips.length - 1;
 	}
-	console.log('index=',needle,'length of clips array=',clips.length);
+	console.log('index=', needle, 'length of clips array=', clips.length);
 	return clips[needle];
 }
 
-function sethashtag(newHashtag){
+function sethashtag(newHashtag) {
 	hashtag = newHashtag;
-	console.log('switching to hashtag',hashtag);
-	clips= [];
-	var clipref = new Firebase(config.firebaseroot + "/hashtags/" + hashtag);
+	console.log('switching to hashtag', hashtag);
+	clips = [];
+	cliprefurl = config.firebaseroot + "/hashtags/" + hashtag;
+	console.log('searching for clips at location', cliprefurl);
+	var clipref = new Firebase(cliprefurl);
 	clipref.on('child_added', function(childSnapshot, prevChildKey) {
-	  // code to handle new child.
-	  var clipkey = childSnapshot.val().clipkey;
-	  console.log('found clip',childSnapshot.key(),'clipkey=',clipkey);
+		// code to handle new child.
+		var clipkey = childSnapshot.val().clipkey;
+		console.log('found clip', childSnapshot.key(), 'clipkey=', clipkey);
 		clips.push(clipkey);
-	  console.log('number of clips in this playlist:',clips.length);
-
+		console.log('number of clips in this playlist:', clips.length);
 	});
 
 }
-	
+
 sethashtag(config.hashtag);
 
 app.get('/', function(req, res) {
@@ -134,10 +144,17 @@ app.get('/', function(req, res) {
 // add our address to the donation queue
 //app.get('/play/:url', function(req, res) {
 
+var term;
 
-function playClip(clipID){
+function handleError(e){
+	console.log('error',e);
+}
 
-	if (!clipID){
+function playClip(clipID) {
+
+	stopClip();
+
+	if (!clipID) {
 		console.log('no clipID given... abort');
 	}
 
@@ -145,12 +162,12 @@ function playClip(clipID){
 
 	console.log('play', wavURL);
 
-	if (config.emulateplay){
+	if (config.emulateplay) {
 		console.log('emulate');
 		return;
 	}
 
-	var term = require('child_process').spawn('mpg123', ['-']);
+	term = require('child_process').spawn('mpg123', ['-']);
 
 	var parser = new MyParser();
 	parser.on('header', function(header) {
@@ -158,13 +175,35 @@ function playClip(clipID){
 	});
 
 	console.log('start playback');
-	request.get(wavURL).pipe(parser).pipe(base64.decode()).pipe(term.stdin);
+	request.get(wavURL)
+		.pipe(parser).on('error', function(e){handleError(e)})
+		.pipe(base64.decode()).on('error', function(e){handleError(e)})
+		.pipe(term.stdin).on('error', function(e){handleError(e)});
 
 	term.on('close', (code) => {
 		console.log('finished!');
 	});
 
 }
+
+function stopClip(){
+	if (term){
+		term.kill('SIGTERM');
+	}
+}
+
+function pauseClip(){
+	if (term){
+		term.kill('SIGSTOP');
+	}
+}
+
+function resumeClip(){
+	if (term){
+		term.kill('SIGCONT');
+	}
+}
+
 
 app.listen(config.httpport, function() {
 	console.log('OK - listening on port ', config.httpport);
