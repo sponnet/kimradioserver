@@ -52,20 +52,25 @@ var options = {
 	//specId: 'faucet',
 	numWorkers: 1
 };
+var lastcommand;
 
 var queue = new Queue(queueRef, options, function(data, progress, resolve, reject) {
 
-	//console.log('received radio command:', data);
+	console.log('received radio command:', data);
+	lastcommand = data.command;
 	switch (data.command) {
 		case "play":
+			stopClip();
 			console.log('start playing clip ' + getclip(0));
 			playClip(getclip(0));
 			break;
 		case "fwd":
+			stopClip();
 			console.log('start playing clip ' + getclip(1));
 			playClip(getclip(0));
 			break;
 		case "back":
+			stopClip();
 			console.log('start playing clip ' + getclip(-1));
 			playClip(getclip(0));
 			break;
@@ -130,6 +135,8 @@ function sethashtag(newHashtag) {
 
 }
 
+console.log('KIM radio - my serial is ', config.serial);
+
 sethashtag(config.hashtag);
 
 app.get('/', function(req, res) {
@@ -152,7 +159,7 @@ function handleError(e){
 
 function playClip(clipID) {
 
-	stopClip();
+	
 
 	if (!clipID) {
 		console.log('no clipID given... abort');
@@ -182,7 +189,10 @@ function playClip(clipID) {
 
 	term.on('close', (code) => {
 		console.log('finished!');
-		playClip(getclip(1));
+		if (lastcommand === "play" || lastcommand === "fwd" ||lastcommand === "back"){
+			console.log('playing - do next clip');
+			playClip(getclip(1));
+		}
 
 	});
 
@@ -191,6 +201,8 @@ function playClip(clipID) {
 function stopClip(){
 	if (term){
 		term.kill('SIGTERM');
+	}else{
+		console.log('no clip playing');
 	}
 }
 
