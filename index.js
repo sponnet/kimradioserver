@@ -66,13 +66,13 @@ var queue = new Queue(queueRef, options, function(data, progress, resolve, rejec
 			break;
 		case "fwd":
 			stopClip();
-			console.log('start playing clip ' + getclip(1));
-			playClip(getclip(0));
+//			console.log('start playing clip ' + getclip(1));
+//			playClip(getclip(0));
 			break;
 		case "back":
 			stopClip();
-			console.log('start playing clip ' + getclip(-1));
-			playClip(getclip(0));
+			//console.log('start playing clip ' + getclip(-1));
+			//playClip(getclip(0));
 			break;
 		case "pause":
 			console.log('pause playback');
@@ -155,11 +155,11 @@ var term;
 
 function handleError(e){
 	console.log('error',e);
+	stopClip();
+	term = null;
 }
 
 function playClip(clipID) {
-
-	
 
 	if (!clipID) {
 		console.log('no clipID given... abort');
@@ -188,10 +188,13 @@ function playClip(clipID) {
 		.pipe(term.stdin).on('error', function(e){handleError(e)});
 
 	term.on('close', (code) => {
-		console.log('finished!');
-		if (lastcommand === "play" || lastcommand === "fwd" ||lastcommand === "back"){
+		console.log('finished! lastcommand',lastcommand);
+		if (lastcommand === "play" || lastcommand === "fwd"){
 			console.log('playing - do next clip');
 			playClip(getclip(1));
+		}
+		if(lastcommand === "back"){
+			playClip(getclip(-1));
 		}
 
 	});
