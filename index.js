@@ -182,6 +182,8 @@ function playClip(clipID) {
 
 	term.on('close', (code) => {
 		console.log('finished!');
+		playClip(getclip(1));
+
 	});
 
 }
